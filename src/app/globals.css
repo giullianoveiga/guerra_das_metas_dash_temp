@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 221 55% 9%;
+    --foreground: 228 92% 93%;
+    --card: 222 47% 11%;
+    --card-foreground: 228 92% 93%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 228 92% 93%;
+    --primary: 225 100% 85%;
+    --primary-foreground: 218 100% 23%;
+    --secondary: 140 100% 74%;
+    --secondary-foreground: 146 100% 11%;
+    --muted: 221 24% 23%;
+    --muted-foreground: 228 9% 79%;
+    --accent: 30 100% 74%;
+    --accent-foreground: 30 100% 15%;
+    --destructive: 0 100% 84%;
+    --destructive-foreground: 0 100% 21%;
+    --border: 221 24% 23%;
+    --input: 221 24% 23%;
+    --ring: 225 100% 85%;
+    --radius: 0.125rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary;
+  }
+}
+
+@layer utilities {
+  .font-headline {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .font-label {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .bg-glass {
+    backdrop-filter: blur(12px);
+    background-color: rgba(45, 52, 73, 0.6);
+  }
+  .kinetic-grid {
+    background-image: radial-gradient(circle at 2px 2px, rgba(178, 197, 255, 0.05) 1px, transparent 0);
+    background-size: 40px 40px;
+  }
+}

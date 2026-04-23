@@ -1,0 +1,29 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "user-avatar",
+      "description": "User profile avatar",
+      "imageUrl": "https://picsum.photos/seed/user42/100/100",
+      "imageHint": "user profile"
+    },
+    {
+      "id": "team-member-1",
+      "description": "Team member avatar 1",
+      "imageUrl": "https://picsum.photos/seed/member1/100/100",
+      "imageHint": "portrait person"
+    },
+    {
+      "id": "team-member-2",
+      "description": "Team member avatar 2",
+      "imageUrl": "https://picsum.photos/seed/member2/100/100",
+      "imageHint": "portrait woman"
+    },
+    {
+      "id": "dashboard-hero",
+      "description": "Abstract efficiency visualization",
+      "imageUrl": "https://picsum.photos/seed/visu/800/400",
+      "imageHint": "abstract data"
+    }
+  ]
+}
