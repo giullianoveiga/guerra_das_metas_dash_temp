@@ -7,6 +7,8 @@ export async function GET(req: NextRequest) {
   const year = parseInt(searchParams.get('year') || String(new Date().getFullYear()));
   const month = parseInt(searchParams.get('month') || String(new Date().getMonth() + 1));
 
+  console.log('[API] rankings request:', { type, year, month });
+
   try {
     if (type === 'annual') {
       const data = await DbService.getAnnualRanking(year);
@@ -16,7 +18,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(data);
     }
   } catch (error: any) {
-    console.error('API Error (rankings):', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[API] Error completo:', error);
+    console.error('[API] Stack:', error.stack);
+    return NextResponse.json({ 
+      error: error.message,
+      stack: error.stack 
+    }, { status: 500 });
   }
 }

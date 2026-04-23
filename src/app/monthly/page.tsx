@@ -7,7 +7,7 @@ import { LeaderboardTable } from '@/components/guerra/LeaderboardTable';
 import { TvModeChart } from '@/components/guerra/TvModeChart';
 import { useTVMode } from '@/contexts/TVModeContext';
 import { cn, formatPercent } from '@/lib/guerra-utils';
-import { generateMockEntries, type LeaderboardEntry } from '@/lib/guerra-data/sectors';
+import { type LeaderboardEntry } from '@/lib/guerra-data/sectors';
 
 export default function MonthlyRankingPage() {
   const { isTVMode } = useTVMode();
@@ -20,8 +20,13 @@ export default function MonthlyRankingPage() {
       try {
         const res = await fetch('/api/rankings?type=monthly');
         const data = await res.json();
-        console.log('[Monthly] Data received:', data.entradas?.length, 'entries');
-        if (data.entradas) {
+        
+        if (data.error) {
+          console.error('[Monthly] API error:', data.error);
+        }
+        
+        console.log('[Monthly] Data received:', data.entradas?.length, 'entries', data.entradas);
+        if (data.entradas && data.entradas.length > 0) {
           setMonthlyEntries(data.entradas);
           setHighlight(data.destaqueSetorElite);
         }

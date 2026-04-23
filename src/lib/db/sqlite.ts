@@ -1,12 +1,18 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 
 const DB_PATH = path.join(process.cwd(), 'guerra_das_metas.db');
+
+console.log('[DB] Path do banco:', DB_PATH);
+console.log('[DB] Banco existe:', fs.existsSync(DB_PATH));
 
 let db: Database.Database | null = null;
 
 export function getDb(): Database.Database {
   if (db) return db;
+  
+  console.log('[DB] Criando conexão...');
   
   db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
@@ -76,6 +82,22 @@ function initSchema() {
     CREATE TABLE IF NOT EXISTS users (
       user_id INTEGER PRIMARY KEY AUTOINCREMENT,
       user TEXT NOT NULL UNIQUE
+    )
+  `);
+
+  // Tabela de pontuação mensal por setor (armazena Vitória de cada mês)
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS sector_monthly_scores (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sector_id INTEGER NOT NULL,
+      year INTEGER NOT NULL,
+      month INTEGER NOT NULL,
+      rank_position INTEGER DEFAULT 0,
+      efficiency REAL DEFAULT 0,
+      points_earned INTEGER DEFAULT 0,
+      bonus_details TEXT DEFAULT '[]',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(sector_id, year, month)
     )
   `);
 
@@ -162,6 +184,70 @@ export function getSectorByName(name: string) {
   return database.prepare('SELECT * FROM sectors WHERE LOWER(sector) = LOWER(?)').get(name);
 }
 
+// Salvar pontuação mensal de um setor (chamado após calcular ranking mensal)
+export function saveMonthlyScore(sectorId: number, year: number, month: number, rankPosition: number, efficiency: number, pointsEarned: number, bonusDetails: string[] = []) {
+  const database = getDb();
+  const bonusJson = JSON.stringify(bonusDetails);
+  
+  // INSERT OR REPLACE para atualizar se já existir
+  database.prepare(`
+    INSERT INTO sector_monthly_scores (sector_id, year, month, rank_position, efficiency, points_earned, bonus_details)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(sector_id, year, month) DO UPDATE SET
+      rank_position = excluded.rank_position,
+      efficiency = excluded.efficiency,
+      points_earned = excluded.points_earned,
+      bonus_details = excluded.bonus_details
+  `).run(sectorId, year, month, rankPosition, efficiency, pointsEarned, bonusJson);
+  
+  console.log('[DB] saveMonthlyScore:', { sectorId, year, month, rankPosition, efficiency, pointsEarned, bonusDetails });
+}
+
+// Buscar scores de um setor por ano
+export function getSectorScoresByYear(sectorId: number, year: number) {
+  const database = getDb();
+  return database.prepare(`
+    SELECT year, month, rank_position, efficiency, points_earned
+    FROM sector_monthly_scores
+    WHERE sector_id = ? AND year = ?
+    ORDER BY month ASC
+  `).all(sectorId, year);
+}
+
+// Buscar todos os scores de um ano (para ranking anual)
+export function getAllScoresByYear(year: number) {
+  const database = getDb();
+  return database.prepare(`
+    SELECT sms.*, s.sector as sector_name
+    FROM sector_monthly_scores sms
+    JOIN sectors s ON s.sector_id = sms.sector_id
+    WHERE sms.year = ?
+    ORDER BY sms.sector_id, sms.month
+  `).all(year);
+}
+
+// Buscar scores de um mês específico (para calcular crescimento)
+export function getAllScoresByYearForMonth(year: number, month: number) {
+  const database = getDb();
+  return database.prepare(`
+    SELECT sector_id, efficiency
+    FROM sector_monthly_scores
+    WHERE year = ? AND month = ?
+  `).all(year, month);
+}
+
+// Get total de pontos anuais de um setor
+export function getTotalAnnualPoints(sectorId: number, year: number) {
+  const database = getDb();
+  const result = database.prepare(`
+    SELECT SUM(points_earned) as total_points, COUNT(*) as months_count
+    FROM sector_monthly_scores
+    WHERE sector_id = ? AND year = ?
+  `).get(sectorId, year) as { total_points: number; months_count: number };
+  
+  return result || { total_points: 0, months_count: 0 };
+}
+
 export function upsertPerformanceSubsector(subsectorId: number, refDate: string, goalValue: number, realizedValue: number) {
   const database = getDb();
   
@@ -216,47 +302,42 @@ export function getSubsectorsBySector(sectorId: number) {
 
 export function getPerformanceByMonth(year: number, month: number) {
   const database = getDb();
-  const monthStr = month.toString().padStart(2, '0');
-  const datePrefix = `${year}-${monthStr}-01`; // Fixed: added day "-01"
 
-  console.log('[sqlite] getPerformanceByMonth:', { year, month, datePrefix });
+  console.log('[sqlite] getPerformanceByMonth:', { year, month });
 
-  // Buscar da nova tabela de indicadores (indicadores.db)
+  // Primeiro: tentar buscar da tabela de scores (dados já processados)
   try {
-    // Lazy load para evitar problema de import circular
-    const indicatorsDb = require('./indicators-db');
-    const indicatorData = indicatorsDb.getAllSectorIndicators(datePrefix);
-    
-    console.log('[sqlite] indicatorData do novo DB:', indicatorData.length, 'setores');
+    const scoresData = database.prepare(`
+      SELECT 
+        s.sector_id,
+        s.sector,
+        sms.efficiency,
+        sms.points_earned,
+        sms.rank_position
+      FROM sector_monthly_scores sms
+      JOIN sectors s ON s.sector_id = sms.sector_id
+      WHERE sms.year = ? AND sms.month = ?
+      ORDER BY sms.rank_position ASC
+    `).all(year, month);
 
-    if (indicatorData && indicatorData.length > 0) {
-      return indicatorData.map((row: any) => ({
-        id: row.sectorId,
-        name: row.sectorName,
+    console.log('[sqlite] Scores encontrados:', scoresData.length, 'para', year, month);
+
+    if (scoresData && scoresData.length > 0) {
+      console.log('[sqlite] Primeiro:', scoresData[0]);
+      return scoresData.map((row: any) => ({
+        id: row.sector_id,
+        name: row.sector,
         target: 0,
         realized: 0,
-        efficiency: row.average || 0
+        efficiency: row.efficiency || 0
       }));
     }
   } catch (error) {
-    console.error('[sqlite] Erro ao buscar indicadores:', error);
+    console.error('[sqlite] Erro ao buscar scores:', error);
   }
 
-  // Se não tiver indicadores, retorna array vazio
-  const sectors = database.prepare(`
-    SELECT sector_id as id, sector as name
-    FROM sectors
-    WHERE sector_id <> 7
-    ORDER BY sector ASC
-  `).all();
-
-  return sectors.map((s: any) => ({
-    id: s.id,
-    name: s.name,
-    target: 0,
-    realized: 0,
-    efficiency: 0
-  }));
+  console.log('[sqlite] Sem dados para', year, month);
+  return [];
 }
 
 export function getAllUsers() {
