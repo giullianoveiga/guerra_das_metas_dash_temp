@@ -27,6 +27,13 @@ function initSchema() {
     )
   `);
 
+  // Inserir novos setores se não existirem
+  const newSectors = ['PENDENCIA', 'REVISAR'];
+  const insertNew = database.prepare('INSERT OR IGNORE INTO sectors (sector) VALUES (?)');
+  for (const sector of newSectors) {
+    insertNew.run(sector);
+  }
+
   // Tabela de sub-setores
   database.exec(`
     CREATE TABLE IF NOT EXISTS subsectors (
@@ -106,11 +113,11 @@ function insertDefaultSectors(database: Database.Database) {
     'ANALISE',
     'COMERCIAL',
     'CONTROLADORIA',
-    'DP_RH',
     'MARKETING',
     'FINANCEIRO',
     'JURIDICO',
-    'TECNOLOGIA'
+    'PENDENCIA',
+    'REVISAR'
   ];
 
   const insert = database.prepare('INSERT INTO sectors (sector) VALUES (?)');

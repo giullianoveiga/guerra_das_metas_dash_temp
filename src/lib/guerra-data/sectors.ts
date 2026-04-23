@@ -34,11 +34,9 @@ export const SECTOR_CONFIGS = [
   { name: 'ANALISE', icon: FileSearch },
   { name: 'COMERCIAL', icon: Rocket },
   { name: 'CONTROLADORIA', icon: Shield },
-  { name: 'DP_RH', icon: Users },
   { name: 'MARKETING', icon: Megaphone },
   { name: 'FINANCEIRO', icon: Landmark },
   { name: 'JURIDICO', icon: Scale },
-  { name: 'TECNOLOGIA', icon: Terminal },
   { name: 'PENDENCIA', icon: Landmark },
   { name: 'REVISAR', icon: CheckCircle2 },
 ];
