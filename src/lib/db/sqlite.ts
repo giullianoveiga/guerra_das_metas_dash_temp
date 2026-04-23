@@ -236,6 +236,16 @@ export function getAllScoresByYearForMonth(year: number, month: number) {
   `).all(year, month);
 }
 
+// Buscar todos os scores de um mês e ano específicos
+export function getAllScoresByYearAndMonth(year: number, month: number) {
+  const database = getDb();
+  return database.prepare(`
+    SELECT sector_id, efficiency, points_earned, rank_position
+    FROM sector_monthly_scores
+    WHERE year = ? AND month = ?
+  `).all(year, month);
+}
+
 // Get total de pontos anuais de um setor
 export function getTotalAnnualPoints(sectorId: number, year: number) {
   const database = getDb();
@@ -439,19 +449,42 @@ export function upsertSectorIndicators(
   sectorId: number,
   refDate: string,
   indicators: Indicator[],
-  hasAtendimento: boolean
+  hasAtendimento: boolean,
+  atendimento: { note: string; efficiency: string } = { note: '', efficiency: '' }
 ) {
   const database = getDb();
   
   const indicatorsJson = JSON.stringify(indicators);
   const hasAtend = hasAtendimento ? 1 : 0;
-
+  
+  // Calcular eficiência média do setor
+  const validIndicators = indicators.filter(ind => ind.name.trim() !== '');
+  let avgEff = 0;
+  
+  if (validIndicators.length > 0) {
+    const sum = validIndicators.reduce((acc, ind) => {
+      const val = parseFloat(String(ind.efficiency).replace('%', '').replace(',', '.')) || 0;
+      return acc + val;
+    }, 0);
+    avgEff = sum / validIndicators.length;
+    
+    // Incluir atendimento se existir
+    if (hasAtendimento && atendimento?.efficiency) {
+      const atEff = parseFloat(String(atendimento.efficiency).replace('%', '').replace(',', '.')) || 0;
+      avgEff = (sum + atEff) / (validIndicators.length + 1);
+    }
+  } else if (hasAtendimento && atendimento?.efficiency) {
+    // Só tem atendimento
+    avgEff = parseFloat(String(atendimento.efficiency).replace('%', '').replace(',', '.')) || 0;
+  }
+  
   console.log('[SQLite] upsertSectorIndicators:', {
     sectorId,
     refDate,
     indicatorsJson,
     hasAtend,
-    indicatorsCount: indicators.length
+    indicatorsCount: indicators.length,
+    average: avgEff.toFixed(2)
   });
 
   // Primeiro verificar se existe
@@ -467,9 +500,10 @@ export function upsertSectorIndicators(
       UPDATE sector_indicators 
       SET indicators_json = ?,
           has_atendimento = ?,
+          efficiency = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE sector_id = ? AND ref_date = ?
-    `).run(indicatorsJson, hasAtend, sectorId, refDate);
+    `).run(indicatorsJson, hasAtend, avgEff, sectorId, refDate);
     
     // Verificar se atualizou
     const verify = database.prepare(`SELECT indicators_json, has_atendimento FROM sector_indicators WHERE sector_id = ? AND ref_date = ?`).get(sectorId, refDate) as { indicators_json: string; has_atendimento: number };
@@ -477,9 +511,9 @@ export function upsertSectorIndicators(
   } else {
     // Insere
     database.prepare(`
-      INSERT INTO sector_indicators (sector_id, ref_date, indicators_json, has_atendimento, updated_at)
-      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `).run(sectorId, refDate, indicatorsJson, hasAtend);
+      INSERT INTO sector_indicators (sector_id, ref_date, indicators_json, has_atendimento, efficiency, updated_at)
+      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).run(sectorId, refDate, indicatorsJson, hasAtend, avgEff);
     
     // Verificar se inseriu
     const verify = database.prepare(`SELECT * FROM sector_indicators WHERE sector_id = ? AND ref_date = ?`).get(sectorId, refDate);
