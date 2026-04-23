@@ -70,6 +70,7 @@ function initSchema() {
       ref_date TEXT NOT NULL,
       indicators_json TEXT DEFAULT '[]',
       has_atendimento INTEGER DEFAULT 0,
+      atendimento_json TEXT DEFAULT '{}',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (sector_id) REFERENCES sectors(sector_id),
@@ -315,7 +316,82 @@ export function getPerformanceByMonth(year: number, month: number) {
 
   console.log('[sqlite] getPerformanceByMonth:', { year, month });
 
-  // Primeiro: tentar buscar da tabela de scores (dados já processados)
+  const refDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+
+  // PRIORIDADE: Buscar eficiência em tempo real da tabela sector_indicators
+  try {
+    const indicatorsData = database.prepare(`
+      SELECT 
+        si.sector_id,
+        s.sector,
+        si.indicators_json,
+        si.has_atendimento,
+        si.atendimento_json
+      FROM sector_indicators si
+      JOIN sectors s ON s.sector_id = si.sector_id
+      WHERE si.ref_date = ?
+      ORDER BY s.sector ASC
+    `).all(refDate) as Array<{
+      sector_id: number;
+      sector: string;
+      indicators_json: string;
+      has_atendimento: number;
+      atendimento_json: string;
+    }>;
+
+    console.log('[sqlite] Indicadores encontrados:', indicatorsData.length, 'para', refDate);
+
+    if (indicatorsData && indicatorsData.length > 0) {
+      // Calcular eficiência média para cada setor
+      const result = indicatorsData.map((row: any) => {
+        const indicators: Indicator[] = JSON.parse(row.indicators_json || '[]');
+        const hasAtendimento = row.has_atendimento === 1;
+        const atendimento = row.atendimento_json ? JSON.parse(row.atendimento_json) : { note: '', efficiency: '' };
+        
+        // Calcular média
+        const validIndicators = indicators.filter((ind: Indicator) => ind.name && ind.name.trim() !== '');
+        const totalIndicadores = hasAtendimento ? validIndicators.length + 1 : validIndicators.length;
+        
+        const percentuais: number[] = [];
+        
+        for (const ind of validIndicators) {
+          if (ind.efficiency && ind.efficiency.trim() !== '') {
+            const val = parseFloat(ind.efficiency.replace('%', '').replace(',', '.'));
+            if (!isNaN(val)) percentuais.push(val);
+          } else {
+            percentuais.push(0);
+          }
+        }
+
+        // Incluir atendimento se existir
+        if (hasAtendimento && atendimento.efficiency && atendimento.efficiency.trim() !== '') {
+          const atEff = parseFloat(atendimento.efficiency.replace('%', '').replace(',', '.'));
+          if (!isNaN(atEff)) percentuais.push(atEff);
+        } else if (hasAtendimento) {
+          percentuais.push(0); // Atendimento vazio conta como 0
+        }
+
+        const average = totalIndicadores > 0
+          ? percentuais.reduce((a, b) => a + b, 0) / totalIndicadores
+          : 0;
+
+        return {
+          id: row.sector_id,
+          name: row.sector,
+          target: 0,
+          realized: 0,
+          efficiency: Math.round(average * 100) / 100
+        };
+      });
+
+      console.log('[sqlite] Retornando dados de indicadores (tempo real):', result.length, 'setores');
+      return result;
+    }
+  } catch (error) {
+    console.error('[sqlite] Erro ao buscar indicadores:', error);
+  }
+
+  // FALLBACK: Buscar da tabela de scores (dados já processados anteriormente)
   try {
     const scoresData = database.prepare(`
       SELECT 
@@ -330,10 +406,9 @@ export function getPerformanceByMonth(year: number, month: number) {
       ORDER BY sms.rank_position ASC
     `).all(year, month);
 
-    console.log('[sqlite] Scores encontrados:', scoresData.length, 'para', year, month);
+    console.log('[sqlite] Scores encontrados (fallback):', scoresData.length, 'para', year, month);
 
     if (scoresData && scoresData.length > 0) {
-      console.log('[sqlite] Primeiro:', scoresData[0]);
       return scoresData.map((row: any) => ({
         id: row.sector_id,
         name: row.sector,
@@ -398,14 +473,19 @@ export function getSectorIndicators(sectorId: number, refDate: string): SectorIn
   const database = getDb();
   
   const row = database.prepare(`
-    SELECT sector_id, indicators_json, has_atendimento
+    SELECT sector_id, indicators_json, has_atendimento, atendimento_json
     FROM sector_indicators
     WHERE sector_id = ? AND ref_date = ?
-  `).get(sectorId, refDate) as { sector_id: number; indicators_json: string; has_atendimento: number } | undefined;
+  `).get(sectorId, refDate) as { sector_id: number; indicators_json: string; has_atendimento: number; atendimento_json: string } | undefined;
 
   if (!row) return null;
 
   const hasAtendimento = row.has_atendimento === 1;
+  
+  // Ler dados de atendimento
+  const atendimento: { note: string; efficiency: string } = row.atendimento_json 
+    ? JSON.parse(row.atendimento_json) 
+    : { note: '', efficiency: '' };
 
   // Buscar nome do setor
   const sector = database.prepare('SELECT sector FROM sectors WHERE sector_id = ?').get(sectorId) as { sector: string } | undefined;
@@ -426,9 +506,12 @@ export function getSectorIndicators(sectorId: number, refDate: string): SectorIn
     }
   }
 
-  if (hasAtendimento) {
-    // Por agora não tem dados de atendimento salvos
-    percentuais.push(0);
+  // Incluir eficiência do atendimento se existir
+  if (hasAtendimento && atendimento.efficiency && atendimento.efficiency.trim() !== '') {
+    const atEff = parseFloat(atendimento.efficiency.replace('%', '').replace(',', '.'));
+    if (!isNaN(atEff)) percentuais.push(atEff);
+  } else if (hasAtendimento) {
+    percentuais.push(0);  // Atendimento vazio conta como 0
   }
 
   const average = totalIndicadores > 0
@@ -441,6 +524,7 @@ export function getSectorIndicators(sectorId: number, refDate: string): SectorIn
     refDate,
     indicators: indicatorDataParsed,
     hasAtendimento,
+    atendimento,
     average
   };
 }
@@ -455,6 +539,7 @@ export function upsertSectorIndicators(
   const database = getDb();
   
   const indicatorsJson = JSON.stringify(indicators);
+  const atendimentoJson = JSON.stringify(atendimento);
   const hasAtend = hasAtendimento ? 1 : 0;
   
   // Calcular eficiência média do setor
@@ -483,6 +568,7 @@ export function upsertSectorIndicators(
     refDate,
     indicatorsJson,
     hasAtend,
+    atendimentoJson,
     indicatorsCount: indicators.length,
     average: avgEff.toFixed(2)
   });
@@ -495,25 +581,25 @@ export function upsertSectorIndicators(
   console.log('[SQLite] Existing record:', existing);
 
   if (existing) {
-    // Atualiza - fazer em 2 passos para evitar problemas de tipos diferentes
+    // Atualiza
     database.prepare(`
       UPDATE sector_indicators 
       SET indicators_json = ?,
           has_atendimento = ?,
-          efficiency = ?,
+          atendimento_json = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE sector_id = ? AND ref_date = ?
-    `).run(indicatorsJson, hasAtend, avgEff, sectorId, refDate);
+    `).run(indicatorsJson, hasAtend, atendimentoJson, sectorId, refDate);
     
     // Verificar se atualizou
-    const verify = database.prepare(`SELECT indicators_json, has_atendimento FROM sector_indicators WHERE sector_id = ? AND ref_date = ?`).get(sectorId, refDate) as { indicators_json: string; has_atendimento: number };
+    const verify = database.prepare(`SELECT indicators_json, has_atendimento, atendimento_json FROM sector_indicators WHERE sector_id = ? AND ref_date = ?`).get(sectorId, refDate) as { indicators_json: string; has_atendimento: number; atendimento_json: string };
     console.log('[SQLite] Verify after update:', verify);
   } else {
     // Insere
     database.prepare(`
-      INSERT INTO sector_indicators (sector_id, ref_date, indicators_json, has_atendimento, efficiency, updated_at)
+      INSERT INTO sector_indicators (sector_id, ref_date, indicators_json, has_atendimento, atendimento_json, updated_at)
       VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `).run(sectorId, refDate, indicatorsJson, hasAtend, avgEff);
+    `).run(sectorId, refDate, indicatorsJson, hasAtend, atendimentoJson);
     
     // Verificar se inseriu
     const verify = database.prepare(`SELECT * FROM sector_indicators WHERE sector_id = ? AND ref_date = ?`).get(sectorId, refDate);
@@ -529,18 +615,23 @@ export function getAllSectorIndicators(refDate: string) {
   const database = getDb();
   
   const rows = database.prepare(`
-    SELECT si.sector_id, s.sector, si.indicators_json, si.has_atendimento
+    SELECT si.sector_id, s.sector, si.indicators_json, si.has_atendimento, si.atendimento_json
     FROM sector_indicators si
     JOIN sectors s ON s.sector_id = si.sector_id
     WHERE si.ref_date = ?
     ORDER BY s.sector ASC
-  `).all(refDate) as Array<{ sector_id: number; sector: string; indicators_json: string; has_atendimento: number }>;
+  `).all(refDate) as Array<{ sector_id: number; sector: string; indicators_json: string; has_atendimento: number; atendimento_json: string }>;
 
   const result: SectorIndicators[] = [];
 
   for (const row of rows) {
     const indicatorData: Indicator[] = JSON.parse(row.indicators_json || '[]');
     const hasAtendimento = row.has_atendimento === 1;
+    
+    // Ler dados de atendimento
+    const atendimento: { note: string; efficiency: string } = row.atendimento_json 
+      ? JSON.parse(row.atendimento_json) 
+      : { note: '', efficiency: '' };
 
     // Calcular média - divide pela quantidade TOTAL de indicadores (não pelos preenchidos)
     const indicatorsComNome = indicatorData.filter(ind => ind.name && ind.name.trim() !== '');
@@ -557,8 +648,12 @@ export function getAllSectorIndicators(refDate: string) {
       }
     }
 
-    if (hasAtendimento) {
-      percentuais.push(0);  // Atendimento sem dados conta como 0
+    // Incluir eficiência do atendimento se existir
+    if (hasAtendimento && atendimento.efficiency && atendimento.efficiency.trim() !== '') {
+      const atEff = parseFloat(atendimento.efficiency.replace('%', '').replace(',', '.'));
+      if (!isNaN(atEff)) percentuais.push(atEff);
+    } else if (hasAtendimento) {
+      percentuais.push(0);  // Atendimento vazio conta como 0
     }
 
     const average = totalIndicadores > 0
@@ -571,6 +666,7 @@ export function getAllSectorIndicators(refDate: string) {
       refDate,
       indicators: indicatorData,
       hasAtendimento,
+      atendimento,
       average
     });
   }

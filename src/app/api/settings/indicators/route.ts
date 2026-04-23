@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { upsertSectorIndicators, getAllSectorIndicators } from '@/lib/db/indicators-db';
+import { upsertSectorIndicators, getAllSectorIndicators } from '@/lib/db/sqlite';
 
 export async function GET(req: NextRequest) {
   try {

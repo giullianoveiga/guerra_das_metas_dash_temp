@@ -1,5 +1,5 @@
 import * as sqlite from './sqlite';
-import { getPerformanceByMonth, saveMonthlyScore, getAllScoresByYearForMonth, getAllScoresByYear, getAllScoresByYearAndMonth } from './sqlite';
+import { getPerformanceByMonth, saveMonthlyScore, getAllScoresByYearForMonth, getAllScoresByYear, getAllScoresByYearAndMonth, upsertSectorIndicators as sqliteUpsertIndicators, getAllSectorIndicators as sqliteGetAllIndicators, type Indicator } from './sqlite';
 import { LeaderboardEntry } from '../guerra-data/sectors';
 
 export interface RankingData {
@@ -342,22 +342,22 @@ export class DbService {
     sqlite.deleteAllPerformanceData();
   }
 
-  // ========== NOVOS MÉTODOS PARA INDICADORES ==========
+  // ========== MÉTODOS PARA INDICADORES (usão único sqlite.ts) ==========
   static async saveSectorIndicators(
     sectorId: number,
     year: number,
     month: number,
-    indicators: indicatorsDb.Indicator[],
+    indicators: Indicator[],
     hasAtendimento: boolean
   ) {
     const refDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-    console.log('[DbService] saveSectorIndicators chamando novo DB...');
-    indicatorsDb.upsertSectorIndicators(sectorId, refDate, indicators, hasAtendimento);
+    console.log('[DbService] saveSectorIndicators via sqlite.ts...');
+    sqliteUpsertIndicators(sectorId, refDate, indicators, hasAtendimento);
   }
 
   static async getAllSectorIndicators(year: number, month: number) {
     const refDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-    console.log('[DbService] getAllSectorIndicators do novo DB...');
-    return indicatorsDb.getAllSectorIndicators(refDate);
+    console.log('[DbService] getAllSectorIndicators via sqlite.ts...');
+    return sqliteGetAllIndicators(refDate);
   }
 }
