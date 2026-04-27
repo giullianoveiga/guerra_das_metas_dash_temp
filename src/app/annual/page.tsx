@@ -15,20 +15,7 @@ export default function AnnualRankingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/rankings?type=annual');
-        const data = await res.json();
-        if (data.entradas) {
-          setAnnualEntries(data.entradas);
-        }
-      } catch (err) {
-        console.error('Failed to fetch annual rankings:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+    setLoading(false);
   }, []);
 
   const topSector = annualEntries[0];
