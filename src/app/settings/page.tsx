@@ -10,12 +10,10 @@ import {
   Plus, 
   RefreshCw, 
   Database, 
-  TrendingUp, 
   AlertCircle,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  GripVertical,
   X
 } from 'lucide-react';
 
@@ -147,7 +145,7 @@ export default function SettingsPage() {
       if (data.sectors) {
         setSectors(data.sectors);
         // Expande todos por padrão
-        const allIds = new Set(data.sectors.map((s: Sector) => s.id));
+        const allIds = new Set<number>(data.sectors.map((s: Sector) => s.id));
         setExpandedSectors(allIds);
       }
     } catch (err) {
@@ -333,6 +331,30 @@ export default function SettingsPage() {
     }));
   }
 
+  async function postIndicatorsPayload(payload: unknown) {
+    const send = (token?: string) => fetch('/api/settings/indicators', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const storedToken = window.sessionStorage.getItem('settingsApiToken') || undefined;
+    let res = await send(storedToken);
+
+    if (res.status === 401) {
+      const token = window.prompt('Token de configuração');
+      if (!token) return res;
+
+      window.sessionStorage.setItem('settingsApiToken', token);
+      res = await send(token);
+    }
+
+    return res;
+  }
+
   async function handleSave() {
     setSaving(true);
     setMessage(null);
@@ -348,14 +370,10 @@ export default function SettingsPage() {
 
       console.log('[handleSave] Enviando:', { year, month, sectorsPayload });
 
-      const res = await fetch('/api/settings/indicators', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          year,
-          month,
-          sectors: sectorsPayload
-        })
+      const res = await postIndicatorsPayload({
+        year,
+        month,
+        sectors: sectorsPayload
       });
 
       const result = await res.json();
@@ -385,19 +403,15 @@ export default function SettingsPage() {
 
     try {
       // Limpar dados - enviar array vazio
-      const res = await fetch('/api/settings/indicators', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          year,
-          month,
-          sectors: sectors.map(s => ({
-            sectorId: s.id,
-            indicators: [],
-            hasAtendimento: false,
-            atendimento: { note: '', efficiency: '' }
-          }))
-        })
+      const res = await postIndicatorsPayload({
+        year,
+        month,
+        sectors: sectors.map(s => ({
+          sectorId: s.id,
+          indicators: [],
+          hasAtendimento: false,
+          atendimento: { note: '', efficiency: '' }
+        }))
       });
 
       const result = await res.json();
@@ -409,7 +423,7 @@ export default function SettingsPage() {
       } else {
         setMessage({ type: 'error', text: result.error || 'Erro ao limpar dados' });
       }
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Erro ao limpar dados' });
     } finally {
       setSaving(false);

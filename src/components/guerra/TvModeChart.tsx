@@ -33,9 +33,6 @@ export function TvModeChart({
 }: TvModeChartProps) {
   const { isTVMode } = useTVMode();
   const [animatedValues, setAnimatedValues] = useState<number[]>([]);
-  const [isAnimating, setIsAnimating] = useState(true);
-  
-  if (!isTVMode) return null;
 
   const chartConfig: ChartConfig = {
     efficiency: {
@@ -65,10 +62,10 @@ export function TvModeChart({
 
   // Animação contínua das barras
   useEffect(() => {
-    if (!isAnimating || baseData.length === 0) return;
+    if (!isTVMode || baseData.length === 0) return;
 
     let animationId: number;
-    let startTime: number = performance.now();
+    const startTime: number = performance.now();
     const duration = 3000; // ciclo de 3 segundos
     
     const animate = (currentTime: number) => {
@@ -112,7 +109,7 @@ export function TvModeChart({
         cancelAnimationFrame(animationId);
       }
     };
-  }, [baseData, isAnimating, dataKey]);
+  }, [baseData, isTVMode, dataKey]);
 
   // Combinar dados base com valores animados
   const chartData = useMemo(() => {
@@ -138,6 +135,8 @@ export function TvModeChart({
     }
     return Math.round(value).toLocaleString();
   };
+
+  if (!isTVMode) return null;
 
   return (
     <div className="flex-1 flex flex-col min-h-0">

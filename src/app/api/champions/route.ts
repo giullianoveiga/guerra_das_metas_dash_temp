@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { DbService } from '@/lib/db/db-service';
 
 export async function GET() {
@@ -7,6 +7,6 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('API Error (champions):', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

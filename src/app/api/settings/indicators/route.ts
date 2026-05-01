@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upsertSectorIndicators, getAllSectorIndicators } from '@/lib/db/sqlite';
+import { requireSettingsWriteAccess } from '@/lib/api/auth';
+import { DbService } from '@/lib/db/db-service';
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,13 +24,16 @@ export async function GET(req: NextRequest) {
     console.error('API Error (get indicators):', error);
     return NextResponse.json({ 
       success: false, 
-      error: error.message 
+      error: 'Erro interno do servidor'
     }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const unauthorized = requireSettingsWriteAccess(req);
+    if (unauthorized) return unauthorized;
+
     const body = await req.json();
     const { year, month, sectors } = body;
 
@@ -54,12 +59,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    await DbService.getMonthlyRanking(year, month);
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('API Error (save indicators):', error);
     return NextResponse.json({ 
       success: false, 
-      error: error.message 
+      error: 'Erro interno do servidor'
     }, { status: 500 });
   }
 }

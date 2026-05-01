@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DbService } from '@/lib/db/db-service';
+import { requireSettingsWriteAccess } from '@/lib/api/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    const unauthorized = requireSettingsWriteAccess(req);
+    if (unauthorized) return unauthorized;
+
     const body = await req.json();
     const { year, month, data } = body;
 
@@ -40,7 +44,7 @@ export async function POST(req: NextRequest) {
     console.error('API Error (save settings):', error);
     return NextResponse.json({ 
       success: false, 
-      error: error.message 
+      error: 'Erro interno do servidor'
     }, { status: 500 });
   }
 }

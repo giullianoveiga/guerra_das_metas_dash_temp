@@ -1,5 +1,5 @@
 import * as sqlite from './sqlite';
-import { getPerformanceByMonth, saveMonthlyScore, getAllScoresByYearForMonth, getAllScoresByYear, getAllScoresByYearAndMonth, upsertSectorIndicators as sqliteUpsertIndicators, getAllSectorIndicators as sqliteGetAllIndicators, type Indicator } from './sqlite';
+import { getPerformanceByMonth, saveMonthlyScore, getAllScoresByYearForMonth, getAllScoresByYear, upsertSectorIndicators as sqliteUpsertIndicators, getAllSectorIndicators as sqliteGetAllIndicators, type Indicator } from './sqlite';
 import { LeaderboardEntry } from '../guerra-data/sectors';
 
 export interface RankingData {
@@ -46,13 +46,7 @@ const META_BASE_THRESHOLD = 100; // Meta para ganhar pontos
 // Salvar scores de todos os setores do mês
 function saveMonthlyScores(entries: LeaderboardEntry[], year: number, month: number, previousMonthEffs: Map<number, number>) {
   // Verificar se já existem dados para este mês - se sim, não sobrescrever
-  const existingData = getAllScoresByYearAndMonth(year, month);
-  if (existingData && existingData.length > 0) {
-    console.log('[DB] Dados já existem para', year, month, '- não sobrescrevendo');
-    return;
-  }
-  
-  console.log('[DB] Salvando novos dados para', year, month);
+  console.log('[DB] Atualizando dados para', year, month);
   
   entries.forEach((entry, index) => {
     const sectorId = entry.id;
@@ -299,8 +293,6 @@ export class DbService {
     }
     
     if (!sectorRow) return null;
-
-    const subsectors = sqlite.getSubsectorsBySector(sectorRow.sector_id);
 
     // Por enquanto, retorna dados vazios para colaboradores
     // Pode ser expandido para buscar performance_users

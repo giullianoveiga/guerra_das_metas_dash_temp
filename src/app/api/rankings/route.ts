@@ -21,8 +21,7 @@ export async function GET(req: NextRequest) {
     console.error('[API] Error completo:', error);
     console.error('[API] Stack:', error.stack);
     return NextResponse.json({ 
-      error: error.message,
-      stack: error.stack 
+      error: 'Erro interno do servidor'
     }, { status: 500 });
   }
 }

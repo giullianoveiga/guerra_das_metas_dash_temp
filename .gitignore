@@ -39,6 +39,9 @@ next-env.d.ts
 
 .genkit/*
 .env*
+*.db-shm
+*.db-wal
+dev-server*.log
 
 # firebase
 firebase-debug.log
