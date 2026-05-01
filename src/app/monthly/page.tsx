@@ -39,10 +39,14 @@ export default function MonthlyRankingPage() {
 
   useEffect(() => {
     const controller = new AbortController();
+    const selectedPeriodLabel = `${MONTHS[month - 1].label} ${year}`;
 
     async function fetchData() {
       try {
         setLoading(true);
+        setMonthlyEntries([]);
+        setHighlight(null);
+        setPeriodLabel(selectedPeriodLabel);
         const params = new URLSearchParams({
           type: 'monthly',
           year: String(year),
@@ -60,7 +64,7 @@ export default function MonthlyRankingPage() {
         console.log('[Monthly] Data received:', data.entradas?.length, 'entries', data.entradas);
         setMonthlyEntries(data.entradas || []);
         setHighlight(data.destaqueSetorElite || null);
-        setPeriodLabel(data.periodoRotulo || `${MONTHS[month - 1].label} ${year}`);
+        setPeriodLabel(data.periodoRotulo || selectedPeriodLabel);
       } catch (err) {
         if (controller.signal.aborted) return;
         console.error('Failed to fetch monthly rankings:', err);
