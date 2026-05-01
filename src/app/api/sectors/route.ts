@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import * as sqlite from '@/lib/db/sqlite';
+import { DbService } from '@/lib/db/db-service';
 
 export async function GET() {
   try {
-    const sectors = sqlite.getAllSectors();
+    const sectors = await DbService.getAllSectors();
     return NextResponse.json({ sectors });
   } catch (error: any) {
     console.error('API Error (list sectors):', error);
