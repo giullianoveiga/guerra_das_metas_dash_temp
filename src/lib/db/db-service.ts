@@ -113,76 +113,92 @@ function saveMonthlyScores(entries: LeaderboardEntry[], year: number, month: num
 
 export class DbService {
   static async getMonthlyRanking(year: number, month: number): Promise<RankingData> {
-    const rows = getPerformanceByMonth(year, month);
-    
-    if (!rows || rows.length === 0) {
-      console.log('[Monthly] Sem dados para', year, month);
+    try {
+      console.log('[Monthly] Iniciando getMonthlyRanking para', year, month);
+      const rows = getPerformanceByMonth(year, month);
+      console.log('[Monthly] getPerformanceByMonth retornou', rows?.length || 0, 'rows');
+      
+      if (!rows || rows.length === 0) {
+        console.log('[Monthly] Sem dados para', year, month);
+        return {
+          id: `mensal_${year}_m${month}`,
+          tipo: 'mensal',
+          ano: year,
+          periodoRotulo: `${getMonthName(month - 1)} ${year}`,
+          entradas: [],
+          destaqueSetorElite: null
+        };
+      }
+      
+      const entries: LeaderboardEntry[] = rows.map((row: any) => {
+        const eff = row.efficiency || 0;
+        const points = eff > 100 ? Math.round(eff * 1.2) : 0; // pontos só se > 100%
+        
+        return {
+          id: row.id,
+          rank: 0,
+          name: row.name,
+          target: 0,
+          realized: 0,
+          eff: eff,
+          points: points,
+          penalties: 0,
+          status: (eff > 105 ? ['rocket', 'verified'] : eff > 100 ? ['verified'] : []) as ('verified' | 'rocket')[],
+          monthlyWins: 0,
+          annualWins: 0
+        };
+      }).sort((a, b) => b.eff - a.eff); // Ordenar por eficiência
+  
+      entries.forEach((e, i) => { e.rank = i + 1; });
+  
+      console.log('[Monthly] Entries:', entries.map(e => `${e.rank}. ${e.name}: eff=${e.eff}`));
+  
+      // Buscar eficiência do mês anterior para calcular bônus de crescimento
+      const previousMonthEffs = new Map<number, number>();
+      try {
+        if (month > 1) {
+          const prevScores = getAllScoresByYearForMonth(year, month - 1);
+          for (const row of prevScores as any[]) {
+            previousMonthEffs.set(row.sector_id, row.efficiency);
+          }
+        } else if (year > 1) {
+          // Janeiro: buscar dezembro do ano anterior
+          const prevScores = getAllScoresByYearForMonth(year - 1, 12);
+          for (const row of prevScores as any[]) {
+            previousMonthEffs.set(row.sector_id, row.efficiency);
+          }
+        }
+      } catch (err) {
+        console.error('[Monthly] Erro ao buscar mês anterior:', err);
+      }
+  
+      // Salvar scores no banco após calcular ranking (com bônus)
+      try {
+        saveMonthlyScores(entries, year, month, previousMonthEffs);
+      } catch (err) {
+        console.error('[Monthly] Erro ao salvar scores:', err);
+        // Não impedir o retorno dos dados se o salvamento falhar
+      }
+  
+      const top = entries[0] || null;
+  
       return {
         id: `mensal_${year}_m${month}`,
         tipo: 'mensal',
         ano: year,
         periodoRotulo: `${getMonthName(month - 1)} ${year}`,
-        entradas: [],
-        destaqueSetorElite: null
+        entradas: entries,
+        destaqueSetorElite: top ? {
+          nome: top.name,
+          eficiencia: top.eff,
+          metaAlvo: 0,
+          realized: 0
+        } : null
       };
+    } catch (error) {
+      console.error('[Monthly] Erro geral em getMonthlyRanking:', error);
+      throw error; // Re-throw para ser capturado pela API
     }
-    
-    const entries: LeaderboardEntry[] = rows.map((row: any) => {
-      const eff = row.efficiency || 0;
-      const points = eff > 100 ? Math.round(eff * 1.2) : 0; // pontos só se > 100%
-      
-      return {
-        id: row.id,
-        rank: 0,
-        name: row.name,
-        target: 0,
-        realized: 0,
-        eff: eff,
-        points: points,
-        penalties: 0,
-        status: (eff > 105 ? ['rocket', 'verified'] : eff > 100 ? ['verified'] : []) as ('verified' | 'rocket')[],
-        monthlyWins: 0,
-        annualWins: 0
-      };
-    }).sort((a, b) => b.eff - a.eff); // Ordenar por eficiência
-
-    entries.forEach((e, i) => { e.rank = i + 1; });
-
-    console.log('[Monthly] Entries:', entries.map(e => `${e.rank}. ${e.name}: eff=${e.eff}`));
-
-    // Buscar eficiência do mês anterior para calcular bônus de crescimento
-    const previousMonthEffs = new Map<number, number>();
-    if (month > 1) {
-      const prevScores = getAllScoresByYearForMonth(year, month - 1);
-      for (const row of prevScores as any[]) {
-        previousMonthEffs.set(row.sector_id, row.efficiency);
-      }
-    } else if (year > 1) {
-      // Janeiro: buscar dezembro do ano anterior
-      const prevScores = getAllScoresByYearForMonth(year - 1, 12);
-      for (const row of prevScores as any[]) {
-        previousMonthEffs.set(row.sector_id, row.efficiency);
-      }
-    }
-
-    // Salvar scores no banco após calcular ranking (com bônus)
-    saveMonthlyScores(entries, year, month, previousMonthEffs);
-
-    const top = entries[0] || null;
-
-    return {
-      id: `mensal_${year}_m${month}`,
-      tipo: 'mensal',
-      ano: year,
-      periodoRotulo: `${getMonthName(month - 1)} ${year}`,
-      entradas: entries,
-      destaqueSetorElite: top ? {
-        nome: top.name,
-        eficiencia: top.eff,
-        metaAlvo: 0,
-        realized: 0
-      } : null
-    };
   }
 
   static async getAnnualRanking(year: number): Promise<RankingData> {

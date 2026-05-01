@@ -18,10 +18,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(data);
     }
   } catch (error: any) {
-    console.error('[API] Error completo:', error);
-    console.error('[API] Stack:', error.stack);
-    return NextResponse.json({ 
-      error: 'Erro interno do servidor'
-    }, { status: 500 });
-  }
+     console.error('[API] Error completo:', error);
+     console.error('[API] Stack:', error.stack);
+     return NextResponse.json({ 
+       error: 'Erro interno do servidor',
+       details: error.message || 'Erro desconhecido'
+     }, { status: 500 });
+   }
 }

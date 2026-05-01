@@ -312,117 +312,122 @@ export function getSubsectorsBySector(sectorId: number) {
 }
 
 export function getPerformanceByMonth(year: number, month: number) {
-  const database = getDb();
-
-  console.log('[sqlite] getPerformanceByMonth:', { year, month });
-
-  const refDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-
-  // PRIORIDADE: Buscar eficiência em tempo real da tabela sector_indicators
   try {
-    const indicatorsData = database.prepare(`
-      SELECT 
-        si.sector_id,
-        s.sector,
-        si.indicators_json,
-        si.has_atendimento,
-        si.atendimento_json
-      FROM sector_indicators si
-      JOIN sectors s ON s.sector_id = si.sector_id
-      WHERE si.ref_date = ?
-      ORDER BY s.sector ASC
-    `).all(refDate) as Array<{
-      sector_id: number;
-      sector: string;
-      indicators_json: string;
-      has_atendimento: number;
-      atendimento_json: string;
-    }>;
+    const database = getDb();
 
-    console.log('[sqlite] Indicadores encontrados:', indicatorsData.length, 'para', refDate);
+    console.log('[sqlite] getPerformanceByMonth:', { year, month });
 
-    if (indicatorsData && indicatorsData.length > 0) {
-      // Calcular eficiência média para cada setor
-      const result = indicatorsData.map((row: any) => {
-        const indicators: Indicator[] = JSON.parse(row.indicators_json || '[]');
-        const hasAtendimento = row.has_atendimento === 1;
-        const atendimento = row.atendimento_json ? JSON.parse(row.atendimento_json) : { note: '', efficiency: '' };
-        
-        // Calcular média
-        const validIndicators = indicators.filter((ind: Indicator) => ind.name && ind.name.trim() !== '');
-        const totalIndicadores = hasAtendimento ? validIndicators.length + 1 : validIndicators.length;
-        
-        const percentuais: number[] = [];
-        
-        for (const ind of validIndicators) {
-          if (ind.efficiency && ind.efficiency.trim() !== '') {
-            const val = parseFloat(ind.efficiency.replace('%', '').replace(',', '.'));
-            if (!isNaN(val)) percentuais.push(val);
-          } else {
-            percentuais.push(0);
+    const refDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+
+    // PRIORIDADE: Buscar eficiência em tempo real da tabela sector_indicators
+    try {
+      const indicatorsData = database.prepare(`
+        SELECT 
+          si.sector_id,
+          s.sector,
+          si.indicators_json,
+          si.has_atendimento,
+          si.atendimento_json
+        FROM sector_indicators si
+        JOIN sectors s ON s.sector_id = si.sector_id
+        WHERE si.ref_date = ?
+        ORDER BY s.sector ASC
+      `).all(refDate) as Array<{
+        sector_id: number;
+        sector: string;
+        indicators_json: string;
+        has_atendimento: number;
+        atendimento_json: string;
+      }>;
+
+      console.log('[sqlite] Indicadores encontrados:', indicatorsData.length, 'para', refDate);
+
+      if (indicatorsData && indicatorsData.length > 0) {
+        // Calcular eficiência média para cada setor
+        const result = indicatorsData.map((row: any) => {
+          const indicators: Indicator[] = JSON.parse(row.indicators_json || '[]');
+          const hasAtendimento = row.has_atendimento === 1;
+          const atendimento = row.atendimento_json ? JSON.parse(row.atendimento_json) : { note: '', efficiency: '' };
+          
+          // Calcular média
+          const validIndicators = indicators.filter((ind: Indicator) => ind.name && ind.name.trim() !== '');
+          const totalIndicadores = hasAtendimento ? validIndicators.length + 1 : validIndicators.length;
+          
+          const percentuais: number[] = [];
+          
+          for (const ind of validIndicators) {
+            if (ind.efficiency && ind.efficiency.trim() !== '') {
+              const val = parseFloat(ind.efficiency.replace('%', '').replace(',', '.'));
+              if (!isNaN(val)) percentuais.push(val);
+            } else {
+              percentuais.push(0);
+            }
           }
-        }
 
-        // Incluir atendimento se existir
-        if (hasAtendimento && atendimento.efficiency && atendimento.efficiency.trim() !== '') {
-          const atEff = parseFloat(atendimento.efficiency.replace('%', '').replace(',', '.'));
-          if (!isNaN(atEff)) percentuais.push(atEff);
-        } else if (hasAtendimento) {
-          percentuais.push(0); // Atendimento vazio conta como 0
-        }
+          // Incluir atendimento se existir
+          if (hasAtendimento && atendimento.efficiency && atendimento.efficiency.trim() !== '') {
+            const atEff = parseFloat(atendimento.efficiency.replace('%', '').replace(',', '.'));
+            if (!isNaN(atEff)) percentuais.push(atEff);
+          } else if (hasAtendimento) {
+            percentuais.push(0); // Atendimento vazio conta como 0
+          }
 
-        const average = totalIndicadores > 0
-          ? percentuais.reduce((a, b) => a + b, 0) / totalIndicadores
-          : 0;
+          const average = totalIndicadores > 0
+            ? percentuais.reduce((a, b) => a + b,0) / totalIndicadores
+            : 0;
 
-        return {
+          return {
+            id: row.sector_id,
+            name: row.sector,
+            target: 0,
+            realized: 0,
+            efficiency: Math.round(average * 100) / 100
+          };
+        });
+
+        console.log('[sqlite] Retornando dados de indicadores (tempo real):', result.length, 'setores');
+        return result;
+      }
+    } catch (error) {
+      console.error('[sqlite] Erro ao buscar indicadores:', error);
+    }
+
+    // FALLBACK: Buscar da tabela de scores (dados já processados anteriormente)
+    try {
+      const scoresData = database.prepare(`
+        SELECT 
+          s.sector_id,
+          s.sector,
+          sms.efficiency,
+          sms.points_earned,
+          sms.rank_position
+        FROM sector_monthly_scores sms
+        JOIN sectors s ON s.sector_id = sms.sector_id
+        WHERE sms.year = ? AND sms.month = ?
+        ORDER BY sms.rank_position ASC
+      `).all(year, month);
+
+      console.log('[sqlite] Scores encontrados (fallback):', scoresData.length, 'para', year, month);
+
+      if (scoresData && scoresData.length > 0) {
+        return scoresData.map((row: any) => ({
           id: row.sector_id,
           name: row.sector,
           target: 0,
           realized: 0,
-          efficiency: Math.round(average * 100) / 100
-        };
-      });
-
-      console.log('[sqlite] Retornando dados de indicadores (tempo real):', result.length, 'setores');
-      return result;
+          efficiency: row.efficiency || 0
+        }));
+      }
+    } catch (error) {
+      console.error('[sqlite] Erro ao buscar scores:', error);
     }
+
+    console.log('[sqlite] Sem dados para', year, month);
+    return [];
   } catch (error) {
-    console.error('[sqlite] Erro ao buscar indicadores:', error);
+    console.error('[sqlite] Erro geral em getPerformanceByMonth:', error);
+    return [];
   }
-
-  // FALLBACK: Buscar da tabela de scores (dados já processados anteriormente)
-  try {
-    const scoresData = database.prepare(`
-      SELECT 
-        s.sector_id,
-        s.sector,
-        sms.efficiency,
-        sms.points_earned,
-        sms.rank_position
-      FROM sector_monthly_scores sms
-      JOIN sectors s ON s.sector_id = sms.sector_id
-      WHERE sms.year = ? AND sms.month = ?
-      ORDER BY sms.rank_position ASC
-    `).all(year, month);
-
-    console.log('[sqlite] Scores encontrados (fallback):', scoresData.length, 'para', year, month);
-
-    if (scoresData && scoresData.length > 0) {
-      return scoresData.map((row: any) => ({
-        id: row.sector_id,
-        name: row.sector,
-        target: 0,
-        realized: 0,
-        efficiency: row.efficiency || 0
-      }));
-    }
-  } catch (error) {
-    console.error('[sqlite] Erro ao buscar scores:', error);
-  }
-
-  console.log('[sqlite] Sem dados para', year, month);
-  return [];
 }
 
 export function getAllUsers() {
