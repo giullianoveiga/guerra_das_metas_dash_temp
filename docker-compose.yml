@@ -7,10 +7,12 @@ services:
     ports:
       - "9002:3000"
     volumes:
-      - ./guerra_das_metas.db:/app/guerra_das_metas.db
       - ./data:/app/data
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - SETTINGS_API_TOKEN=guerra_das_metas_2026
     restart: unless-stopped
     user: "1000:1000"
