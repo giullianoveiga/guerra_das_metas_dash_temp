@@ -1,0 +1,626 @@
+
+> nextn@0.1.0 dev
+> next dev --turbopack -p 9002
+
+   ▲ Next.js 15.5.9 (Turbopack)
+   - Local:        http://localhost:9002
+   - Network:      http://100.70.10.179:9002
+   - Environments: .env
+
+ ✓ Starting...
+Creating turbopack project {
+  dir: 'C:\\Users\\giulliano.filho\\Downloads\\Desenvolvimento\\guerra_das_metas_dash_temp 1\\guerra_das_metas_dash_temp',
+  testMode: true
+}
+ ✓ Ready in 1397ms
+ ○ Compiling /api/sectors ...
+ ✓ Compiled /api/sectors in 1493ms
+[DB] Path do banco: C:\Users\giulliano.filho\Downloads\Desenvolvimento\guerra_das_metas_dash_temp 1\guerra_das_metas_dash_temp\guerra_das_metas.db
+[DB] Banco existe: true
+[API] rankings request: { type: 'annual', year: 2026, month: 5 }
+[DB] Criando conexão...
+ GET /api/rankings?type=annual&year=2026 200 in 1921ms
+ GET /api/sectors 200 in 1979ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.6s
+ GET / 200 in 3010ms
+ GET /api/sectors 200 in 400ms
+ ○ Compiling /monthly ...
+ ✓ Compiled /monthly in 2.4s
+ GET /monthly 200 in 2553ms
+ GET /api/sectors 200 in 360ms
+[API] rankings request: { type: 'monthly', year: 2026, month: 5 }
+[sqlite] getPerformanceByMonth: { year: 2026, month: 5 }
+[sqlite] Indicadores encontrados: 0 para 2026-05-01
+[sqlite] Scores encontrados (fallback): 0 para 2026 5
+[sqlite] Sem dados para 2026 5
+[Monthly] Sem dados para 2026 5
+ GET /api/rankings?type=monthly&year=2026&month=5 200 in 373ms
+ GET /api/sectors 200 in 340ms
+ GET /api/sectors 200 in 321ms
+ GET /api/sectors 200 in 340ms
+[API] rankings request: { type: 'monthly', year: 2026, month: 4 }
+[sqlite] getPerformanceByMonth: { year: 2026, month: 4 }
+[sqlite] Indicadores encontrados: 12 para 2026-04-01
+[sqlite] Retornando dados de indicadores (tempo real): 12 setores
+[Monthly] Entries: [
+  '1. MARKETING: eff=83.98',
+  '2. COMERCIAL: eff=78.55',
+  '3. ANALISE: eff=77.56',
+  '4. REVISAR: eff=74.74',
+  '5. FINANCEIRO: eff=64.62',
+  '6. CONTROLADORIA: eff=61.9',
+  '7. PENDENCIA: eff=59.03',
+  '8. ACOMPANHAMENTO: eff=57.36',
+  '9. ACORDOS: eff=55.67',
+  '10. JURIDICO: eff=48.55',
+  '11. DP_RH: eff=0',
+  '12. TECNOLOGIA: eff=0'
+]
+[DB] Atualizando dados para 2026 4
+[DB] saveMonthlyScore: {
+  sectorId: 7,
+  year: 2026,
+  month: 4,
+  rankPosition: 1,
+  efficiency: 83.98,
+  pointsEarned: 0,
+  bonusDetails: [ 'Abaixo da Meta' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 4,
+  year: 2026,
+  month: 4,
+  rankPosition: 2,
+  efficiency: 78.55,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 3,
+  year: 2026,
+  month: 4,
+  rankPosition: 3,
+  efficiency: 77.56,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 12,
+  year: 2026,
+  month: 4,
+  rankPosition: 4,
+  efficiency: 74.74,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 8,
+  year: 2026,
+  month: 4,
+  rankPosition: 5,
+  efficiency: 64.62,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 5,
+  year: 2026,
+  month: 4,
+  rankPosition: 6,
+  efficiency: 61.9,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 11,
+  year: 2026,
+  month: 4,
+  rankPosition: 7,
+  efficiency: 59.03,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 1,
+  year: 2026,
+  month: 4,
+  rankPosition: 8,
+  efficiency: 57.36,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 2,
+  year: 2026,
+  month: 4,
+  rankPosition: 9,
+  efficiency: 55.67,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 9,
+  year: 2026,
+  month: 4,
+  rankPosition: 10,
+  efficiency: 48.55,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 6,
+  year: 2026,
+  month: 4,
+  rankPosition: 11,
+  efficiency: 0,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 10,
+  year: 2026,
+  month: 4,
+  rankPosition: 12,
+  efficiency: 0,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScores done for 2026 4 with 12 entries
+ GET /api/rankings?type=monthly&year=2026&month=4 200 in 328ms
+ ○ Compiling /annual ...
+ ✓ Compiled /annual in 886ms
+ GET /annual 200 in 1006ms
+ GET /api/sectors 200 in 361ms
+[API] rankings request: { type: 'annual', year: 2026, month: 5 }
+ GET /api/rankings?type=annual&year=2026 200 in 362ms
+ GET /api/sectors 200 in 345ms
+ GET /api/sectors 200 in 326ms
+ GET /api/sectors 200 in 325ms
+ GET /monthly 200 in 139ms
+ GET /api/sectors 200 in 422ms
+[API] rankings request: { type: 'monthly', year: 2026, month: 5 }
+[sqlite] getPerformanceByMonth: { year: 2026, month: 5 }
+[sqlite] Indicadores encontrados: 0 para 2026-05-01
+[sqlite] Scores encontrados (fallback): 0 para 2026 5
+[sqlite] Sem dados para 2026 5
+[Monthly] Sem dados para 2026 5
+[API] rankings request: { type: 'monthly', year: 2026, month: 5 }
+[sqlite] getPerformanceByMonth: { year: 2026, month: 5 }
+[sqlite] Indicadores encontrados: 0 para 2026-05-01
+[sqlite] Scores encontrados (fallback): 0 para 2026 5
+[sqlite] Sem dados para 2026 5
+[Monthly] Sem dados para 2026 5
+ GET /api/rankings?type=monthly&year=2026&month=5 200 in 436ms
+ GET /api/sectors 200 in 311ms
+ GET /api/sectors 200 in 313ms
+ GET /api/sectors 200 in 314ms
+[API] rankings request: { type: 'monthly', year: 2026, month: 4 }
+[sqlite] getPerformanceByMonth: { year: 2026, month: 4 }
+[sqlite] Indicadores encontrados: 12 para 2026-04-01
+[sqlite] Retornando dados de indicadores (tempo real): 12 setores
+[Monthly] Entries: [
+  '1. MARKETING: eff=83.98',
+  '2. COMERCIAL: eff=78.55',
+  '3. ANALISE: eff=77.56',
+  '4. REVISAR: eff=74.74',
+  '5. FINANCEIRO: eff=64.62',
+  '6. CONTROLADORIA: eff=61.9',
+  '7. PENDENCIA: eff=59.03',
+  '8. ACOMPANHAMENTO: eff=57.36',
+  '9. ACORDOS: eff=55.67',
+  '10. JURIDICO: eff=48.55',
+  '11. DP_RH: eff=0',
+  '12. TECNOLOGIA: eff=0'
+]
+[DB] Atualizando dados para 2026 4
+[DB] saveMonthlyScore: {
+  sectorId: 7,
+  year: 2026,
+  month: 4,
+  rankPosition: 1,
+  efficiency: 83.98,
+  pointsEarned: 0,
+  bonusDetails: [ 'Abaixo da Meta' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 4,
+  year: 2026,
+  month: 4,
+  rankPosition: 2,
+  efficiency: 78.55,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 3,
+  year: 2026,
+  month: 4,
+  rankPosition: 3,
+  efficiency: 77.56,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 12,
+  year: 2026,
+  month: 4,
+  rankPosition: 4,
+  efficiency: 74.74,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 8,
+  year: 2026,
+  month: 4,
+  rankPosition: 5,
+  efficiency: 64.62,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 5,
+  year: 2026,
+  month: 4,
+  rankPosition: 6,
+  efficiency: 61.9,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 11,
+  year: 2026,
+  month: 4,
+  rankPosition: 7,
+  efficiency: 59.03,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 1,
+  year: 2026,
+  month: 4,
+  rankPosition: 8,
+  efficiency: 57.36,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 2,
+  year: 2026,
+  month: 4,
+  rankPosition: 9,
+  efficiency: 55.67,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 9,
+  year: 2026,
+  month: 4,
+  rankPosition: 10,
+  efficiency: 48.55,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 6,
+  year: 2026,
+  month: 4,
+  rankPosition: 11,
+  efficiency: 0,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 10,
+  year: 2026,
+  month: 4,
+  rankPosition: 12,
+  efficiency: 0,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScores done for 2026 4 with 12 entries
+ GET /api/rankings?type=monthly&year=2026&month=4 200 in 346ms
+ GET /annual 200 in 143ms
+ GET /api/sectors 200 in 353ms
+[API] rankings request: { type: 'annual', year: 2026, month: 5 }
+ GET /api/rankings?type=annual&year=2026 200 in 367ms
+ GET /api/sectors 200 in 329ms
+ GET /api/sectors 200 in 355ms
+ GET /api/sectors 200 in 331ms
+ ○ Compiling /champions ...
+ ✓ Compiled /champions in 558ms
+ GET /champions 200 in 642ms
+ ✓ Compiled /api/champions in 211ms
+ GET /api/sectors 200 in 347ms
+[sqlite] getPerformanceByMonth: { year: 2026, month: 4 }
+[sqlite] Indicadores encontrados: 12 para 2026-04-01
+[sqlite] Retornando dados de indicadores (tempo real): 12 setores
+[Monthly] Entries: [
+  '1. MARKETING: eff=83.98',
+  '2. COMERCIAL: eff=78.55',
+  '3. ANALISE: eff=77.56',
+  '4. REVISAR: eff=74.74',
+  '5. FINANCEIRO: eff=64.62',
+  '6. CONTROLADORIA: eff=61.9',
+  '7. PENDENCIA: eff=59.03',
+  '8. ACOMPANHAMENTO: eff=57.36',
+  '9. ACORDOS: eff=55.67',
+  '10. JURIDICO: eff=48.55',
+  '11. DP_RH: eff=0',
+  '12. TECNOLOGIA: eff=0'
+]
+[DB] Atualizando dados para 2026 4
+[DB] saveMonthlyScore: {
+  sectorId: 7,
+  year: 2026,
+  month: 4,
+  rankPosition: 1,
+  efficiency: 83.98,
+  pointsEarned: 0,
+  bonusDetails: [ 'Abaixo da Meta' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 4,
+  year: 2026,
+  month: 4,
+  rankPosition: 2,
+  efficiency: 78.55,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 3,
+  year: 2026,
+  month: 4,
+  rankPosition: 3,
+  efficiency: 77.56,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 12,
+  year: 2026,
+  month: 4,
+  rankPosition: 4,
+  efficiency: 74.74,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 8,
+  year: 2026,
+  month: 4,
+  rankPosition: 5,
+  efficiency: 64.62,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 5,
+  year: 2026,
+  month: 4,
+  rankPosition: 6,
+  efficiency: 61.9,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 11,
+  year: 2026,
+  month: 4,
+  rankPosition: 7,
+  efficiency: 59.03,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 1,
+  year: 2026,
+  month: 4,
+  rankPosition: 8,
+  efficiency: 57.36,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 2,
+  year: 2026,
+  month: 4,
+  rankPosition: 9,
+  efficiency: 55.67,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 9,
+  year: 2026,
+  month: 4,
+  rankPosition: 10,
+  efficiency: 48.55,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 6,
+  year: 2026,
+  month: 4,
+  rankPosition: 11,
+  efficiency: 0,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 10,
+  year: 2026,
+  month: 4,
+  rankPosition: 12,
+  efficiency: 0,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScores done for 2026 4 with 12 entries
+ GET /api/champions 200 in 508ms
+ GET /api/sectors 200 in 326ms
+[sqlite] getPerformanceByMonth: { year: 2026, month: 4 }
+[sqlite] Indicadores encontrados: 12 para 2026-04-01
+[sqlite] Retornando dados de indicadores (tempo real): 12 setores
+[Monthly] Entries: [
+  '1. MARKETING: eff=83.98',
+  '2. COMERCIAL: eff=78.55',
+  '3. ANALISE: eff=77.56',
+  '4. REVISAR: eff=74.74',
+  '5. FINANCEIRO: eff=64.62',
+  '6. CONTROLADORIA: eff=61.9',
+  '7. PENDENCIA: eff=59.03',
+  '8. ACOMPANHAMENTO: eff=57.36',
+  '9. ACORDOS: eff=55.67',
+  '10. JURIDICO: eff=48.55',
+  '11. DP_RH: eff=0',
+  '12. TECNOLOGIA: eff=0'
+]
+[DB] Atualizando dados para 2026 4
+[DB] saveMonthlyScore: {
+  sectorId: 7,
+  year: 2026,
+  month: 4,
+  rankPosition: 1,
+  efficiency: 83.98,
+  pointsEarned: 0,
+  bonusDetails: [ 'Abaixo da Meta' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 4,
+  year: 2026,
+  month: 4,
+  rankPosition: 2,
+  efficiency: 78.55,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 3,
+  year: 2026,
+  month: 4,
+  rankPosition: 3,
+  efficiency: 77.56,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 12,
+  year: 2026,
+  month: 4,
+  rankPosition: 4,
+  efficiency: 74.74,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 8,
+  year: 2026,
+  month: 4,
+  rankPosition: 5,
+  efficiency: 64.62,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 5,
+  year: 2026,
+  month: 4,
+  rankPosition: 6,
+  efficiency: 61.9,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 11,
+  year: 2026,
+  month: 4,
+  rankPosition: 7,
+  efficiency: 59.03,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 1,
+  year: 2026,
+  month: 4,
+  rankPosition: 8,
+  efficiency: 57.36,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 2,
+  year: 2026,
+  month: 4,
+  rankPosition: 9,
+  efficiency: 55.67,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 9,
+  year: 2026,
+  month: 4,
+  rankPosition: 10,
+  efficiency: 48.55,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 6,
+  year: 2026,
+  month: 4,
+  rankPosition: 11,
+  efficiency: 0,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScore: {
+  sectorId: 10,
+  year: 2026,
+  month: 4,
+  rankPosition: 12,
+  efficiency: 0,
+  pointsEarned: 0,
+  bonusDetails: [ 'Zona Crítica' ]
+}
+[DB] saveMonthlyScores done for 2026 4 with 12 entries
+ GET /api/champions 200 in 328ms
+ GET /api/sectors 200 in 352ms
+ GET /api/sectors 200 in 309ms
+ GET /monthly 200 in 127ms
+ GET /api/sectors 200 in 400ms
+[API] rankings request: { type: 'monthly', year: 2026, month: 5 }
+[sqlite] getPerformanceByMonth: { year: 2026, month: 5 }
+[sqlite] Indicadores encontrados: 0 para 2026-05-01
+[sqlite] Scores encontrados (fallback): 0 para 2026 5
+[sqlite] Sem dados para 2026 5
+[Monthly] Sem dados para 2026 5
+[API] rankings request: { type: 'monthly', year: 2026, month: 5 }
+[sqlite] getPerformanceByMonth: { year: 2026, month: 5 }
+[sqlite] Indicadores encontrados: 0 para 2026-05-01
+[sqlite] Scores encontrados (fallback): 0 para 2026 5
+[sqlite] Sem dados para 2026 5
+[Monthly] Sem dados para 2026 5
+ GET /api/rankings?type=monthly&year=2026&month=5 200 in 398ms
+ GET /api/sectors 200 in 328ms
+ GET /api/sectors 200 in 312ms
+ GET /api/sectors 200 in 322ms
+   ▲ Next.js 15.5.9 (Turbopack)
+   - Local:        http://localhost:9002
+   - Network:      http://100.70.10.179:9002
+   - Environments: .env
+
+ ✓ Starting...
+Creating turbopack project {
+  dir: 'C:\\Users\\giulliano.filho\\Downloads\\Desenvolvimento\\guerra_das_metas_dash_temp 1\\guerra_das_metas_dash_temp',
+  testMode: true
+}
+ ✓ Ready in 1620ms

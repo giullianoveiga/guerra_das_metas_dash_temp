@@ -36,7 +36,9 @@ function getMonthName(monthIndex: number) {
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
-  return months[monthIndex];
+  // monthIndex é 1-12, ajustar para 0-11
+  const index = monthIndex - 1;
+  return months[index] || months[0];
 }
 
 // Verificar zona crítica (meta mínima = 80%)

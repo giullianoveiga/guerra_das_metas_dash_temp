@@ -1,7 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { upsertSectorIndicators, getAllSectorIndicators } from '@/lib/db/sqlite';
 import { requireSettingsWriteAccess } from '@/lib/api/auth';
 import { DbService } from '@/lib/db/db-service';
+
+const IndicatorSchema = z.object({
+  name: z.string().min(1),
+  goal: z.number().min(0),
+  realized: z.union([z.string(), z.number()]).transform(val => String(val)),
+  efficiency: z.string().default('')
+});
+
+const SectorIndicatorsSchema = z.object({
+  sectorId: z.number().int().positive(),
+  indicators: z.array(IndicatorSchema).min(1),
+  hasAtendimento: z.boolean().optional(),
+  atendimento: z.object({
+    note: z.string().default(''),
+    efficiency: z.string().default('')
+  }).default({ note: '', efficiency: '' })
+});
+
+const SaveIndicatorsSchema = z.object({
+  year: z.number().int().min(2020).max(2030),
+  month: z.number().int().min(1).max(12),
+  sectors: z.array(SectorIndicatorsSchema).min(1)
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -35,16 +59,19 @@ export async function POST(req: NextRequest) {
     if (unauthorized) return unauthorized;
 
     const body = await req.json();
-    const { year, month, sectors } = body;
-
-    console.log('[API] POST received:', { year, month, sectorsCount: sectors?.length });
-
-    if (!year || !month || !sectors || !Array.isArray(sectors)) {
+    
+    const validationResult = SaveIndicatorsSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Dados inválidos' 
+        error: 'Dados inválidos',
+        details: validationResult.error.errors
       }, { status: 400 });
     }
+
+    const { year, month, sectors } = validationResult.data;
+
+    console.log('[API] POST received:', { year, month, sectorsCount: sectors?.length });
 
     const refDate = `${year}-${month.toString().padStart(2, '0')}-01`;
 
@@ -54,9 +81,7 @@ export async function POST(req: NextRequest) {
       
       console.log('[API] Salvando setor:', sectorId, 'indicators:', indicators?.length, 'atendimento:', atendimento);
       
-      if (sectorId && indicators && Array.isArray(indicators)) {
-        upsertSectorIndicators(sectorId, refDate, indicators, hasAtendimento || false, atendimento || { note: '', efficiency: '' });
-      }
+      upsertSectorIndicators(sectorId, refDate, indicators, hasAtendimento || false, atendimento || { note: '', efficiency: '' });
     }
 
     await DbService.getMonthlyRanking(year, month);

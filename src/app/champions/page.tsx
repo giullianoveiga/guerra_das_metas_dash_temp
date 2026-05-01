@@ -13,8 +13,8 @@ const getSectorImage = (sectorId: string | number | undefined) => {
   if (!sectorId) return '/GUERRA_DAS_METAS.png';
   
   const id = Number(sectorId);
-  // Valid IDs are 1-6 based on available images
-  if (id >= 1 && id <= 6) {
+  // Valid IDs are 1-12 based on available images in public/
+  if (id >= 1 && id <= 12) {
     return `/${id}.png`;
   }
   
